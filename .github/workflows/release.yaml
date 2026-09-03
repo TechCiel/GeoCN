@@ -1,0 +1,31 @@
+name: Build Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  schedule: 
+    - cron:  '0 2 * * 4'
+
+jobs:
+  build:
+    name: Build Release
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Run make
+      run: make
+
+    - name: Push to release branch
+      run: |
+        git branch -D release || true
+        git checkout --orphan release
+        git add GeoCN.txt
+        git config --local user.name "github-actions[bot]"
+        git config --local user.email ""
+        git commit -m "built on $(date)"
+        git remote add github "https://${{ github.actor }}:${{ github.token }}@github.com/${{ github.repository }}.git"
+        git push -f -u github release
